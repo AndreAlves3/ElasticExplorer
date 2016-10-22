@@ -20,12 +20,6 @@ public class GreetingController {
         elasticOperations = new Operations();
     }
     
-    @RequestMapping("/greeting")
-    public Greeting greeting(@RequestParam(value="name", defaultValue="World") String name) {
-        return new Greeting(counter.incrementAndGet(),
-                            String.format(template, name));
-    }
-    
     @RequestMapping("/createIndex")
     public Response startWorker(@RequestParam(value="index", defaultValue="elasticExplorer") String indexName){        
         elasticOperations.createIndex(indexName,Constants.ELASTIC_HOME);
@@ -36,4 +30,10 @@ public class GreetingController {
     public void indexTester(){
         elasticOperations.indexTester();
     }
+    
+    @RequestMapping("/testBulkProcessor")
+    public void testBulk(){
+        elasticOperations.testBulkProcessor();
+    }
+    
 }

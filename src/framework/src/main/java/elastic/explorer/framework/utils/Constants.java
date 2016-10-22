@@ -11,4 +11,6 @@ package elastic.explorer.framework.utils;
  */
 public class Constants {
     public static String ELASTIC_HOME = "C:\\Users\\andre\\Desktop\\Project\\elasticsearch-2.4.1\\";
+    public static String INDEX_NAME = "elasticexplorer";
+    public static String MAPPING_NAME = "no_mapping";
 }

@@ -3,7 +3,6 @@ package elastic.explorer.framework.elasticsearch;
 import elastic.explorer.framework.utils.Constants;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.logging.Level;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -28,14 +27,64 @@ public class Operations {
     private Client client;
     private BulkProcessor bulkProcessor;
     private SearchResponse response;
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(Operations.class);
-     
+
     public void createIndex(String indexName, String home) {
         LOG.trace("Create Index () - start");
         startNodeAndClient(home);
-        client.admin().indices().prepareCreate("testindex").get();
+        client.admin().indices().prepareCreate(Constants.INDEX_NAME).get();
         LOG.trace("Create Index () - end");
+    }
+
+    public void indexTester() {
+        startNodeAndClient(Constants.ELASTIC_HOME);
+        try {
+            IndexResponse response = null;
+            for (int i = 1; i < 1000; i++) {
+                response = client.prepareIndex(Constants.INDEX_NAME, Constants.MAPPING_NAME)
+                        .setSource(jsonBuilder()
+                                .startObject()
+                                .field("user", "user" + i)
+                                .field("today_date", new Date())
+                                .field("test_speed", "Teste of things")
+                                .endObject()
+                        )
+                        .get();
+                System.out.println("Indexed document: " + i);
+            }
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(Operations.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            client.close();
+        }
+    }
+    
+    /*OK!!!*/
+    public void testBulkProcessor() {
+        startNodeAndClient(Constants.ELASTIC_HOME);
+        try{
+        for (int i = 1; i < 50; i++) {
+            IndexRequest request = client.prepareIndex(Constants.INDEX_NAME, Constants.MAPPING_NAME)
+                        .setSource(jsonBuilder()
+                                .startObject()
+                                .field("user", "user" + i)
+                                .field("today_date", new Date())
+                                .field("test_speed", "Teste of things")
+                                .endObject()
+                        ).request();
+            
+            bulkProcessor.add(request);
+            System.out.println("Saved document: "+i);
+        }
+        }catch(Exception e){
+            System.err.println(e.getMessage());
+        }finally{
+            bulkProcessor.flush();
+            bulkProcessor.close();
+            client.close();
+        }
+                
     }
 
     private void startNodeAndClient(String home) {
@@ -79,37 +128,8 @@ public class Operations {
             response = null;
         }
     }
-    
+
     public void flushBulkProcessor() {
         bulkProcessor.close();
-    }
-
-    public void indexTester2() {
-       startNodeAndClient(Constants.ELASTIC_HOME);
-       for(int i = 0; i < 500;i++){
-           HashMap<String, Object> document = new HashMap();
-           document.put("Name", "Document"+i);
-           document.put("ID", i);
-           bulkProcessor.add(new IndexRequest("testindex").source(document));
-       }
-       flushBulkProcessor();
-       bulkProcessor.close();
-       client.close();
-    }
-    public void indexTester(){
-        startNodeAndClient(Constants.ELASTIC_HOME);
-        try {
-            IndexResponse response2 = client.prepareIndex("testindex", "testDoc", "1")
-                    .setSource(jsonBuilder()
-                            .startObject()
-                            .field("user", "kimchy")
-                            .field("postDate", new Date())
-                            .field("message", "trying out Elasticsearch")
-                            .endObject()
-                    )
-                    .get();
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(Operations.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 }
