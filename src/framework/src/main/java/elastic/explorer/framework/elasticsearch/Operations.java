@@ -59,13 +59,13 @@ public class Operations {
             client.close();
         }
     }
-    
+
     /*OK!!!*/
     public void testBulkProcessor() {
         startNodeAndClient(Constants.ELASTIC_HOME);
-        try{
-        for (int i = 1; i < 50; i++) {
-            IndexRequest request = client.prepareIndex(Constants.INDEX_NAME, Constants.MAPPING_NAME)
+        try {
+            for (int i = 1; i < 50; i++) {
+                IndexRequest request = client.prepareIndex(Constants.INDEX_NAME, Constants.MAPPING_NAME)
                         .setSource(jsonBuilder()
                                 .startObject()
                                 .field("user", "user" + i)
@@ -73,18 +73,18 @@ public class Operations {
                                 .field("test_speed", "Teste of things")
                                 .endObject()
                         ).request();
-            
-            bulkProcessor.add(request);
-            System.out.println("Saved document: "+i);
-        }
-        }catch(Exception e){
+
+                bulkProcessor.add(request);
+                System.out.println("Saved document: " + i);
+            }
+        } catch (Exception e) {
             System.err.println(e.getMessage());
-        }finally{
+        } finally {
             bulkProcessor.flush();
             bulkProcessor.close();
             client.close();
         }
-                
+
     }
 
     private void startNodeAndClient(String home) {

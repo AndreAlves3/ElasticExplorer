@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class GreetingController {
+public class ElasticController {
 
     private static final String template = "Hello, %s!";
     private final AtomicLong counter = new AtomicLong();
     private Operations elasticOperations;
      
-    public GreetingController(){
+    public ElasticController(){
         elasticOperations = new Operations();
     }
     
