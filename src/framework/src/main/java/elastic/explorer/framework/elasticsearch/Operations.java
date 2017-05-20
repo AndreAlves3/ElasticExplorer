@@ -1,8 +1,11 @@
 package elastic.explorer.framework.elasticsearch;
 
+import elastic.explorer.framework.model.euromilhoes.EuroMilllionsResult;
 import elastic.explorer.framework.utils.Constants;
+import elastic.explorer.framework.utils.EuroMillionsReader;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -27,11 +30,13 @@ public class Operations {
     private Client client;
     private BulkProcessor bulkProcessor;
     private SearchResponse response;
-
+    private String home;
+        
     private static final Logger LOG = LoggerFactory.getLogger(Operations.class);
 
-    public void createIndex(String indexName, String home) {
+    public void createIndex(String indexName) {
         LOG.trace("Create Index () - start");
+        this.home = Constants.ELASTIC_HOME;
         startNodeAndClient(home);
         client.admin().indices().prepareCreate(Constants.INDEX_NAME).get();
         LOG.trace("Create Index () - end");
@@ -60,7 +65,6 @@ public class Operations {
         }
     }
 
-    /*OK!!!*/
     public void testBulkProcessor() {
         startNodeAndClient(Constants.ELASTIC_HOME);
         try {
@@ -90,7 +94,7 @@ public class Operations {
     private void startNodeAndClient(String home) {
         if (node == null) {
             node = NodeBuilder.nodeBuilder().clusterName("andre").client(true)
-                    .settings(Settings.builder().put("path.home", home)).node();
+                    .settings(Settings.builder().put("path.home", Constants.ELASTIC_HOME)).node();
         }
         if (client == null) {
             client = node.client();
@@ -131,5 +135,36 @@ public class Operations {
 
     public void flushBulkProcessor() {
         bulkProcessor.close();
+    }
+    
+    public void updateEuromilhoes(){
+        startNodeAndClient(home);
+        client.admin().indices().prepareCreate(Constants.INDEX_NAME).get();
+        EuroMillionsReader reader = new EuroMillionsReader();     
+        List<EuroMilllionsResult> results = reader.getEuroMillionsResults();
+        try {
+            for (EuroMilllionsResult er : results) {
+                IndexRequest request = client.prepareIndex(Constants.INDEX_NAME, Constants.MAPPING_NAME)
+                        .setSource(jsonBuilder()
+                                .startObject()
+                                .field("id",er.getId())
+                                .field("date",er.getDate())
+                                .field("numbers",er.getNumbers())
+                                .field("stars",er.getStars())
+                                .field("jackpot",er.getJackpot())
+                                .field("winners",er.getWinners())
+                                .endObject()
+                        ).request();
+
+                bulkProcessor.add(request);
+                System.out.println("Saved document");
+            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        } finally {
+            bulkProcessor.flush();
+            bulkProcessor.close();
+            client.close();
+        }      
     }
 }

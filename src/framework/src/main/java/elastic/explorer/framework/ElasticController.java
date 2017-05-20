@@ -22,7 +22,7 @@ public class ElasticController {
     
     @RequestMapping("/createIndex")
     public Response startWorker(@RequestParam(value="index", defaultValue="elasticExplorer") String indexName){        
-        elasticOperations.createIndex(indexName,Constants.ELASTIC_HOME);
+        elasticOperations.createIndex(indexName);
         return null;
     }
     
@@ -34,6 +34,11 @@ public class ElasticController {
     @RequestMapping("/testBulkProcessor")
     public void testBulk(){
         elasticOperations.testBulkProcessor();
+    }
+    
+    @RequestMapping("/updateEuromilhoes")
+    public void updateEuromilhoes(){
+        elasticOperations.updateEuromilhoes();
     }
     
 }
